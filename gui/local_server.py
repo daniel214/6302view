@@ -222,7 +222,7 @@ async def send_down(message):
         msg = message.encode('ascii')
         ser.write(msg)
         if VERBOSE:
-            print("▼", msg)
+            print('\u001b[7m▼', msg,'\u001b[0m')
     except Exception as e:
         print("failing on write")
         ser.close()
