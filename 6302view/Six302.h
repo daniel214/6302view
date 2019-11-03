@@ -170,7 +170,7 @@ class CommManager {
 
       /* Other */
       
-      void debug(char*);
+      void debug(const char*);
       void debug(String);
       //void debug(bool);
       //void debug(int);

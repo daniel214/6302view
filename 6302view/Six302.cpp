@@ -185,9 +185,10 @@ bool CommManager::addPlot(float* linker, const char* title,
    ||  burst == 0
    ||  burst > (float)_report_period / (float)_step_period )
       return false;
-
-   _reporters[_total_reporters] = linker;
+for (int i = 0; i < num_plots; i++) {
+   _reporters[_total_reporters] = linker++;
    _bursts[_total_reporters++] = burst;
+}
 #ifdef S302_UNO
    dtostrf(yrange_min, 0, MAX_PREC, _tmp);
    sprintf(_buf, "P\r%.*s\r%s\r", MAX_TITLE_LEN, title, _tmp);
@@ -202,7 +203,7 @@ bool CommManager::addPlot(float* linker, const char* title,
       steps_displayed, burst, num_plots);
    strcat(_build_string, _buf);
 #endif
-   
+
    return true;
 }
 
@@ -353,7 +354,7 @@ void CommManager::_control() {
          // send buildstring!
          BROADCAST(_build_string, strlen(_build_string));
          BROADCAST(_buf, strlen(_buf));
-         BROADCAST("\n", 2);
+         BROADCAST("\n", 1);
          return;
       } break;
 
@@ -363,6 +364,11 @@ void CommManager::_control() {
             break; // only structured code allowed beyond this point
       
          int id = atoi(strtok(_buf, ":"));
+	 if (id > _total_controls-1) {
+		 debug("[OUT_OF_RANGE_ID_RECEIVED]");
+		 break;
+	 }
+	 
          char val[24];
          strcpy(val, strtok(NULL, "\n"));
          if( !strcmp(val, "true") ) {
@@ -372,7 +378,6 @@ void CommManager::_control() {
          } else { // float
             *_controls[id] = atof(val);
          }
-
       } break;
    }
    
@@ -406,7 +411,7 @@ void CommManager::_report() {
       BROADCAST("\fD", 2);
       BROADCAST(&_headroom_rp, 4);
       BROADCAST(_debug_string, n);
-      BROADCAST("\n", 2);
+      BROADCAST("\n", 1);
       _debug_string[0] = '\0';
    }
    _headroom_rp = (float)INT32_MAX;
@@ -421,7 +426,7 @@ void CommManager::_report() {
       for( uint8_t burst = 0; burst < _bursts[reporter]; burst++ ) 
          BROADCAST(_recordings[reporter][burst], 4);
          
-   BROADCAST("\n", 2);
+   BROADCAST("\n", 1);
 
 }
 
@@ -497,7 +502,7 @@ void CommManager::_on_websocket_event(
 
 /* Else */
 
-void CommManager::debug(char* line) {
+void CommManager::debug(const char* line) {
 
    // Add to the debug string buffer
    // (cuts off if too long though)
